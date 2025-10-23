@@ -1,0 +1,13 @@
+{
+  "excel_path": "/Users/dorosee/Documents/KFOOD_PDF_SCRIPT/storage/excel/10월/",
+  "pdf_output_path": "/Users/dorosee/Documents/KFOOD_PDF_SCRIPT/storage/template/result_v7.html",
+  "db": {
+    "host": "1.201.162.139",
+    "port": 3306,
+    "user": "root",
+    "password": "$#@!Company1!",
+    "database": "kFood",
+    "tableName": "tb_member",
+    "databaseType": "mysql"
+  }
+}

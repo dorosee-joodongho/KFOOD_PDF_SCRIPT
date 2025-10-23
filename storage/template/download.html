@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Excel Import Batch</title>
+</head>
+<body>
+<h2>Excel Import Batch</h2>
+<button id="startBtn">Create PDF</button>
+<button id="downloadBtn">Download ZIP</button>
+<div id="log"></div>
+
+<script>
+    const logDiv = document.getElementById('log');
+
+    function log(message) {
+        const p = document.createElement('p');
+        p.textContent = message;
+        logDiv.appendChild(p);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', async () => {
+        const ranges = [
+            // [3,10],
+            // [11,20],
+            // [21,30],
+            // // 이후 범위 추가 가능
+
+            [3, 1000],
+            [1001, 2000],
+            [2001, 3000],
+            [3001, 4000],
+            [4001, 5000],
+            [5001, 5846]
+        ];
+
+        for (const [start, end] of ranges) {
+            try {
+                log(`PDF 생성 요청: rows ${start} to ${end}...`);
+
+                const response = await fetch(`http://localhost:3000/data/create-pdf?start=${start}&end=${end}`);
+                if (response.ok) {
+                    const result = await response.json();
+                    log(`PDF 생성 완료: ${result.pdfPaths.length}개`);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                // 여기서 ZIP 다운로드 API 호출 가능
+                // 예: fetch(`/data/zip-download?paths=${encodeURIComponent(result.pdfPaths.join(','))}`)
+            } catch (err) {
+                log(`Error: rows ${start}-${end}: ${err.message}`);
+            }
+        }
+        log('모든 배치 PDF 생성 완료!');
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', async () => {
+        const folderPath = '/Users/dorosee/Documents/dev_jdh/EXCEL_TO_PDF/temp';
+        const response = await fetch(`http://localhost:3000/data/download-zip?folderPath=${folderPath}`);
+        if (!response.ok) throw new Error('ZIP 다운로드 실패');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'report.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    });
+</script>
+</body>
+</html>
