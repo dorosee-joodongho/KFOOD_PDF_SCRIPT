@@ -79,18 +79,13 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                     }
 
                     ensureDir(saveDir);
-                    const year = item.년;
-                    const month = item.월.padStart(2, "0");
+                    const dayDir = path.join(saveDir, `${item.년}.${item.월}.${item.일}`)
+                    const safeValue = String(`${item.년}.${item.월}.${item.일}.${item.연번}_${item.회원명}`);
 
-                    const yearDir = path.join(saveDir, year);
-                    const monthDir = path.join(yearDir, `${year}.${month}`);
+                    fs.mkdirSync(dayDir, { recursive: true });
 
-                    fs.mkdirSync(monthDir, { recursive: true });
-
-                    const safeValue = String(`${item.년}.${item.월}.${item.rowNumber || index}.${item.회원명}`);
-
-                    const tempPdfPath = path.join(monthDir, `${safeValue}_temp.pdf`);
-                    const finalPdfPath = path.join(monthDir, `${safeValue}.pdf`);
+                    const tempPdfPath = path.join(dayDir, `${safeValue}_temp.pdf`);
+                    const finalPdfPath = path.join(dayDir, `${safeValue}.pdf`);
 
                     let htmlContent = htmlTemplate;
 

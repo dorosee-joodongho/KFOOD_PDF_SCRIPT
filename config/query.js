@@ -1,6 +1,8 @@
 module.exports = {
     SELECT_QUERY: `
-        SELECT u.name                                     AS \`회원명\`,
+        SELECT
+               u.userNo                                   AS \`연번\`,
+               u.name                                     AS \`회원명\`,
                COALESCE(a.licenseNumber, b.licenseNumber) AS \`인허가번호\`,
                CASE COALESCE(a.industryType, b.industryType)
                    WHEN 1 THEN '일반음식점'
