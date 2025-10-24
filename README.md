@@ -33,3 +33,9 @@ Excel 파일에서 DB에 없는 사용자를 별도로 기록.
    *(TODO 목록을 참고하여 키 값 수정 필요)*
 4. `/handlers/excel_handler.js`의 `handleWriteNotFoundUser` 함수는 Excel 데이터와 DB Map을 활용하여 매핑되지 않은 사용자를 추출합니다.
 5. TXT 저장 경로 예시: /output/{생성년도}/{생성월}/NOT_FOUND_USER/k_food/{파일명}.txt
+
+### 4. Ghostscript 설치 (macOS 기준)
+1. brew install ghostscript
+2. gs --version
+3. 설치 후 버전 확인 버전이 정상적으로 나오면 설치완료
+
