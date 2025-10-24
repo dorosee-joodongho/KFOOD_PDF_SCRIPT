@@ -30,30 +30,42 @@ try {
 const args = process.argv.slice(2);
 
 let inputDate = null;
+let appRunningType = null;
 
 for (const arg of args) {
     if (arg.startsWith('--date=')) {
         inputDate = arg.split('=')[1];
     }
+    else if (arg.startsWith('--type=')) {
+        appRunningType = arg.split('=')[1];
+    }
 }
 
-if (!inputDate) {
-    console.error('❌ 날짜 인자가 필요합니다. 예: node src/app.js --date=2025-10-24');
+if (appRunningType ==='db_to_pdf' && !inputDate) {
+    console.error('날짜 인자가 필요합니다. 예: node src/app.js --date=2025-10-24');
     process.exit(1);
 }
+
 
 const startDate = `${inputDate} 00:00:00`;
 const endDate = `${inputDate} 23:59:59`;
 const queryTemplate = Query.SELECT_QUERY
 const finalQuery = applyDateRange(queryTemplate, startDate, endDate);
-console.log(`
+
+if (appRunningType === 'db_to_pdf') {
+    console.log(`
     ==================== 실행 쿼리 ====================
     ${finalQuery}
     ==================================================
 `);
+}
+
+
 
 //TODO 실제로 여기에 Excel 이름 입력하기 배열로
-const readingFileList = [];
+const readingFileList = [
+    '2025년 10월 1일 회원가입 명부.xlsx'
+];
 
 //포멧 형식에 맞춘 Excel Config
 const excelConfig = {
@@ -140,4 +152,4 @@ async function main(appRunningType, options = {}) {
     await handler(options);
 }
 
-main('db_to_pdf').catch(err => console.error(err));
+main(`${appRunningType}`).catch(err => console.error(err));

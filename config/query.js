@@ -1,4 +1,4 @@
-module.exports={
+module.exports = {
     SELECT_QUERY: `
         SELECT u.name                                     AS \`회원명\`,
                COALESCE(a.licenseNumber, b.licenseNumber) AS \`인허가번호\`,
@@ -41,7 +41,14 @@ module.exports={
           AND u.status = '1'
         ORDER BY u.regdate;`
     ,
-    SELECT_CUSTOM_QUERY:`
+    SELECT_MAPPING_USER_QUERY: `
+        SELECT *
+        FROM tblUser
+        WHERE regdate BETWEEN '2025-08-01 00:00:00' AND '2025-10-22 00:00:00';
+    `,
+
+    //자유롭게 사용 유저 누락이 되거나 그럴떄 사용
+    SELECT_CUSTOM_QUERY: `
         SELECT u.name                                     AS \`회원명\`,
                COALESCE(a.licenseNumber, b.licenseNumber) AS \`인허가번호\`,
                CASE COALESCE(a.industryType, b.industryType)
@@ -93,5 +100,5 @@ module.exports={
                    'myrosejs31'
     )
         ORDER BY u.regdate;;
-`
+    `,
 }

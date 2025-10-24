@@ -6,25 +6,23 @@ const {readExcelFile} = require("./excel_processor");
 const {getCurrentYearMonth} = require("./utill_processor")
 const {selectQueryExecuteData} = require("./db_processor");
 const {getConnection} = require("../config/db");
+const query = require("../config/query")
 
 const projectRoot = path.resolve(__dirname, '..'); // 한 단계 위로 올라가서 루트
 const fileRootPath = path.join(projectRoot, 'output');
 
-// 공통: DB 데이터를 Map으로 변환
+// 공통: DB 데이터를 Map 으로 변환
 const getDbDataMap = async (dbConfig) => {
     const db = await getConnection(dbConfig);
-    const readDbData = await selectQueryExecuteData("tblUser", db, `
-        SELECT *
-        FROM tblUser
-        WHERE regdate BETWEEN '2025-08-01 00:00:00' AND '2025-10-22 00:00:00';
-    `);
+    //TODO 마지막 쿼리는 실제
+    const readDbData = await selectQueryExecuteData("tblUser", db, query.SELECT_MAPPING_USER_QUERY);
 
     const dbMap = new Map();
     const duplicateMap = new Map();
     const normalizePhone = (phone) => String(phone).trim().replace(/\D/g, '');
 
     readDbData.forEach(item => {
-        const normalizedKey = normalizePhone(item.userPhone);
+        const normalizedKey = normalizePhone(item.userPhone); //TODO 실제로 Key 값으로 사용 할 Column 명으로 대체
 
         if (dbMap.has(normalizedKey)) {
             if (!duplicateMap.has(normalizedKey)) {
@@ -57,9 +55,9 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNu
 
         // 엑셀 데이터에 DB 데이터 병합
         const mergedData = readExcelData
-            .filter(excelRow => excelRow.연락처 != null)
+            .filter(excelRow => excelRow.연락처 != null)//TODO 실제로 Key 값으로 사용 할 Column 명으로 대체 ( null 필터링 )
             .map(excelRow => {
-                const dbRow = dbMap.get(normalizePhone(excelRow.연락처));
+                const dbRow = dbMap.get(normalizePhone(excelRow.연락처));//TODO 실제로 Key 값으로 사용 할 Column 명으로 대체 ( dbMap 에서 값 가지고오는 부분 )
                 const regDate = dbRow && dbRow.regDate ? formatRegDate(dbRow.regDate) : null;
 
                 return {
@@ -75,10 +73,9 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNu
                     일: regDate ? regDate.day : null
                 };
             });
-
+        console.log(mergedData[0])
         const lastRowNumber = mergedData?.[mergedData.length - 1]?.rowNumber ?? null;
         await writePdfFile(mergedData, pdfPath, saveDir, 2, "excel");
-
         console.log(`[Excel→PDF] 저장 경로: ${saveDir + "/**"}`);
         return lastRowNumber
     } catch (error) {
@@ -108,9 +105,9 @@ const handleWriteNotFoundUser = async (excelPath, excelOption, dbConfig, rowNumb
         const notFoundList = [];
 
         readExcelData
-            .filter(excelRow => excelRow.연락처 != null)
+            .filter(excelRow => excelRow.연락처 != null) //TODO 실제로 Key 값으로 사용 할 Column 명으로 대체 ( null 필터링 )
             .forEach(excelRow => {
-                const normalizedPhone = normalizePhone(excelRow.연락처);
+                const normalizedPhone = normalizePhone(excelRow.연락처);//TODO 실제로 Key 값으로 사용 할 Column 명으로 대체 ( dbMap 에서 값 가지고오는 부분 )
                 const dbRow = dbMap.get(normalizedPhone);
 
                 if (!dbRow) {
