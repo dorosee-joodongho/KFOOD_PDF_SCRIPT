@@ -148,7 +148,7 @@ const printDuplicatePhones = (duplicateMap) => {
         console.log(`총 중복 번호 수: ${duplicateMap.size}개\n`);
 
         duplicateMap.forEach((users, phone) => {
-            console.log(`📞 연락처: ${phone} (${users.length}건 중복)`);
+            console.log(`연락처: ${phone} (${users.length}건 중복)`);
             console.log("─".repeat(50));
             users.forEach((user, idx) => {
                 console.log(`  [${idx + 1}] 이름: ${user.userName || 'N/A'}`);

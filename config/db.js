@@ -7,7 +7,7 @@ const testDbConnection = async ({ host, port, user, password, database }) => {
         const [rows] = await conn.execute('SELECT 1'); // 간단 테스트 쿼리
         await conn.end();
 
-        console.log('✅ DB 연결 성공:', host, database);
+        console.log('DB 연결 성공:', host, database);
         return {
             success: true,
             message: 'DB 연결 성공',
@@ -15,7 +15,7 @@ const testDbConnection = async ({ host, port, user, password, database }) => {
         };
     } catch (error) {
         console.error(host , port , user , password, database)
-        console.error('❌ DB 연결 실패:', error.message);
+        console.error(' DB 연결 실패:', error.message);
         return {
             success: false,
             message: `DB 연결 실패: ${error.message}`,

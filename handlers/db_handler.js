@@ -29,10 +29,10 @@ const handleDbToPDF = async (dbConfig, pdfPath, query) => {
 
         console.log("fileRootPath:", fileRootPath);
         console.log("saveDir:", saveDir);
-        console.log("유저 데이터 조회 완료 " + data.length)
-        console.log("유저 데이터 조회 완료\n", JSON.stringify(data[0], null, 2));
+        console.log("유저 데이터 조회 완료 총: " + data.length)
+        console.log("유저 데이터 조회\n", JSON.stringify(data[0], null, 2));
 
-        const pdfSaveFilePath = await writePdfFile(data, pdfPath, saveDir, 2);
+        await writePdfFile(data, pdfPath, saveDir, 2);
 
         console.log("PDF 생성 완료");
     } catch (e) {

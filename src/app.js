@@ -27,26 +27,35 @@ try {
 } catch (error) {
     console.error('설정 파일 읽기 오류:', error.message);
 }
+const args = process.argv.slice(2);
 
-const startDate = '2021-08-01 00:00:00';
-const endDate = '2021-08-01 23:59:59';
+let inputDate = null;
+
+for (const arg of args) {
+    if (arg.startsWith('--date=')) {
+        inputDate = arg.split('=')[1];
+    }
+}
+
+if (!inputDate) {
+    console.error('❌ 날짜 인자가 필요합니다. 예: node src/app.js --date=2025-10-24');
+    process.exit(1);
+}
+
+const startDate = `${inputDate} 00:00:00`;
+const endDate = `${inputDate} 23:59:59`;
 const queryTemplate = Query.SELECT_QUERY
 const finalQuery = applyDateRange(queryTemplate, startDate, endDate);
+console.log(`
+    ==================== 실행 쿼리 ====================
+    ${finalQuery}
+    ==================================================
+`);
 
-const readingFileList = [
-    "2025년 10월 1일 회원가입 명부.xlsx",
+//TODO 실제로 여기에 Excel 이름 입력하기 배열로
+const readingFileList = [];
 
-    "2025년 10월 2일~9일 회원가입 명부.xlsx",
-    "2025년 10월 10일~12일 회원가입 명부.xlsx",
-    "2025년 10월 13일 회원가입 명부.xlsx",
-    "2025년 10월 14일 회원가입 명부.xlsx",
-    "2025년 10월 15일 회원가입 명부.xlsx",
-    "2025년 10월 16일 회원가입 명부.xlsx",
-    "2025년 10월 17일~19일 회원가입 명부.xlsx",
-    "2025년 10월 20일 회원가입 명부.xlsx",
-    "2025년 10월 21일 회원가입 명부.xlsx"
-];
-
+//포멧 형식에 맞춘 Excel Config
 const excelConfig = {
     sheetIndex: 0, //시트 Index
     headerRow: 2,  //몇번째 행부터 시작할지 0부터 시작
@@ -55,8 +64,7 @@ const excelConfig = {
 }
 
 const handlers = {
-
-
+    //모든 파일과 Sheet 순회
     excel_to_pdf: async () => {
         let rowNumber = 1;
 
@@ -66,13 +74,10 @@ const handlers = {
             // 1. 파일의 전체 시트 개수 확인
             const workbook = xlsx.readFile(filePath);
             const sheetCount = workbook.SheetNames.length;
-
             console.log(`\n파일: ${fileName} (총 ${sheetCount}개 시트)`);
-
             // 2. 각 시트마다 처리
             for (let sheetIndex = 0; sheetIndex < sheetCount; sheetIndex++) {
                 console.log(`시트 ${sheetIndex + 1}/${sheetCount} 처리`);
-
                 rowNumber = await handleExcelToPDF(
                     filePath,
                     { ...excelConfig, sheetIndex }, // sheetIndex 동적으로 전달
@@ -111,6 +116,7 @@ const handlers = {
             }
         }
     },
+
     db_to_pdf: () => handleDbToPDF(
         db,
         pdfPath,
@@ -123,6 +129,7 @@ function applyDateRange(query, startDate, endDate) {
         .replace(/__START_DATE__/g, startDate)
         .replace(/__END_DATE__/g, endDate);
 }
+
 const handlersWithLogging = Object.fromEntries(
     Object.entries(handlers).map(([key, fn]) => [key, logExecution(key, fn)])
 );
@@ -133,4 +140,4 @@ async function main(appRunningType, options = {}) {
     await handler(options);
 }
 
-main('excel_to_pdf').catch(err => console.error(err));
+main('db_to_pdf').catch(err => console.error(err));

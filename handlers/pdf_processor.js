@@ -69,7 +69,6 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
 
                 try {
                     if (item.년 == null) {
-                        console.log(item)
                         const regDate = formatRegDate(item.가입일);
                         item = {
                             ...item,
@@ -98,23 +97,60 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                     const 업종 = item.업종 ?? item['영업자명/업종'] ?? ' ';
 
                     htmlContent = htmlContent
-                        .replace('[[회원명]]', item.회원명 ?? ' ')
-                        .replace('[[인허가번호]]', item.인허가번호 ?? ' ')
-                        .replace('[[업종]]', 업종)
-                        .replace(
-                            '[[소재지]]',
-                            type === 'excel'
+                        .replace('[[회원명]]', () => {
+                            if (!item.회원명) console.log('회원명 값 없음', item.아이디);
+                            return item.회원명 ?? ' ';
+                        })
+                        .replace('[[인허가번호]]', () => {
+                            if (!item.인허가번호) console.log('인허가번호 값 없음', item.아이디);
+                            return item.인허가번호 ?? ' ';
+                        })
+                        .replace('[[업종]]', () => {
+                            if (!업종) console.log('업종 값 없음', item);
+                            return 업종 ?? ' ';
+                        })
+                        .replace('[[소재지]]', () => {
+                            const value = type === 'excel'
                                 ? `${item.소재지 ?? '-'} \n ${item.소재지상세 ?? '-'}`
-                                : (item.주소 ?? '-')
-                        )
-                        .replace('[[연락처]]', formatPhone(item.연락처) ?? ' ')
-                        .replace('[[아이디]]', item.아이디 ?? ' ')
-                        .replace('[[생년월일]]', formatBirthday(item.생년월일) ?? ' ')
-                        .replace('[[이메일]]', item.이메일 ?? ' ')
-                        .replace('[[업소명]]', item.업소명 ?? ' ')
-                        .replace('[[월]]', item.월 ?? ' ')
-                        .replace('[[년]]', item.년 ?? ' ')
-                        .replace('[[일]]', item.일 ?? ' ');
+                                : (item.주소 ?? '-');
+                            if (!item.소재지 && !item.주소) console.log('소재지 값 없음', item.아이디);
+                            return value;
+                        })
+                        .replace('[[연락처]]', () => {
+                            const value = formatPhone(item.연락처) ?? ' ';
+                            if (!item.연락처) console.log('연락처 값 없음', item.아이디);
+                            return value;
+                        })
+                        .replace('[[아이디]]', () => {
+                            if (!item.아이디) console.log('아이디 값 없음', item.아이디);
+                            return item.아이디 ?? ' ';
+                        })
+                        .replace('[[생년월일]]', () => {
+                            const value = formatBirthday(item.생년월일) ?? ' ';
+                            if (!item.생년월일) console.log('생년월일 값 없음', item.아이디);
+                            return value;
+                        })
+                        .replace('[[이메일]]', () => {
+                            if (!item.이메일) console.log('이메일 값 없음', item.아이디);
+                            return item.이메일 ?? ' ';
+                        })
+                        .replace('[[업소명]]', () => {
+                            if (!item.업소명) console.log('업소명 값 없음', item.아이디);
+                            return item.업소명 ?? ' ';
+                        })
+                        .replace('[[월]]', () => {
+                            if (!item.월) console.log('월 값 없음', item.아이디);
+                            return item.월 ?? ' ';
+                        })
+                        .replace('[[년]]', () => {
+                            if (!item.년) console.log('년 값 없음', item.아이디);
+                            return item.년 ?? ' ';
+                        })
+                        .replace('[[일]]', () => {
+                            if (!item.일) console.log('일 값 없음', item.아이디);
+                            return item.일 ?? ' ';
+                        });
+
 
                     const browser = await puppeteer.launch();
                     const page = await browser.newPage();
