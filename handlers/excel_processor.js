@@ -1,7 +1,7 @@
 const fs = require('fs');
 const xlsx = require('xlsx');
 
-const readExcelFile = (filePath, headerRow = 0, sheetIndex = 0, startRow = 1, endRow = null, rowNumber) => {
+const readExcelFile = (filePath, headerRow = 0, sheetIndex = 0, startRow = 1, endRow = null) => {
     if (!fs.existsSync(filePath))
         throw new Error(`파일이 존재하지 않습니다: ${filePath}`);
 
@@ -25,7 +25,6 @@ const readExcelFile = (filePath, headerRow = 0, sheetIndex = 0, startRow = 1, en
 
     // rowNumber 붙이기 (1부터 시작)
     data = data.map((row, idx) => ({
-        rowNumber: rowNumber + idx,
         ...row
     }));
 

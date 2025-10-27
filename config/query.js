@@ -41,14 +41,13 @@ module.exports = {
                            ON u.userId = b.userId AND a.userId IS NULL
         WHERE u.regdate BETWEEN '__START_DATE__' AND '__END_DATE__'
           AND u.status = '1'
-        ORDER BY u.regdate;`
-    ,
-    SELECT_MAPPING_USER_QUERY: `
+        ORDER BY u.regdate;`,
+
+    SELECT_MAPPING_USER_QUERY:`
         SELECT *
         FROM tblUser
-        WHERE regdate BETWEEN '2025-08-01 00:00:00' AND '2025-10-22 00:00:00';
+        WHERE regdate BETWEEN '__START_DATE__ 00:00:00' AND '__END_DATE__ 23:59:59';
     `,
-
     //자유롭게 사용 유저 누락이 되거나 그럴떄 사용
     SELECT_CUSTOM_QUERY: `
         SELECT u.name                                     AS \`회원명\`,

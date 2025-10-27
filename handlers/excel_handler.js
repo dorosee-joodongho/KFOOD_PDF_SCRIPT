@@ -7,7 +7,6 @@ const {getCurrentYearMonth} = require("./utill_processor")
 const {selectQueryExecuteData} = require("./db_processor");
 const {getConnection} = require("../config/db");
 const query = require("../config/query")
-const {json} = require("express");
 
 const projectRoot = path.resolve(__dirname, '..'); // 한 단계 위로 올라가서 루트
 const fileRootPath = path.join(projectRoot, 'output');
@@ -15,15 +14,18 @@ const fileRootPath = path.join(projectRoot, 'output');
 // 공통: DB 데이터를 Map 으로 변환
 const getDbDataMap = async (dbConfig) => {
     const db = await getConnection(dbConfig);
-    //TODO 마지막 쿼리는 실제
-    const readDbData = await selectQueryExecuteData("tblUser", db, query.SELECT_MAPPING_USER_QUERY);
+    const readDbData = await selectQueryExecuteData("tblUser", db, `
+        SELECT *
+        FROM tblUser
+        WHERE regdate BETWEEN '2025-08-01 00:00:00' AND '2025-10-22 00:00:00';
+    `);
 
     const dbMap = new Map();
     const duplicateMap = new Map();
     const normalizePhone = (phone) => String(phone).trim().replace(/\D/g, '');
 
     readDbData.forEach(item => {
-        const normalizedKey = normalizePhone(item.userPhone); //TODO 실제로 Key 값으로 사용 할 Column 명으로 대체
+        const normalizedKey = normalizePhone(item.userPhone);
 
         if (dbMap.has(normalizedKey)) {
             if (!duplicateMap.has(normalizedKey)) {
@@ -39,16 +41,16 @@ const getDbDataMap = async (dbConfig) => {
 };
 
 //데이터 베이스 To Pdf
-const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNumber) => {
+const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig) => {
     const {sheetIndex, headerRow, startRow, endRow} = excelOption;
 
     try {
         const {year, month} = getCurrentYearMonth();
-        const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow, rowNumber);
-        //100개 읽음 ->? 101부터 시작 되게 해야함 근데 필터를 거치면? 나온건 90개인데 101부터 시작? X
-        const randomStr = "k_food"
+        const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow);
+
+        const filename = path.parse(excelPath).name;
         const baseSaveDir = path.join(fileRootPath, year.toString(), month, "PDF");
-        const saveDir = path.join(baseSaveDir, randomStr);
+        const saveDir = path.join(baseSaveDir, filename);
 
         // DB 데이터 조회
         const { dbMap, duplicateMap, normalizePhone } = await getDbDataMap(dbConfig);
@@ -56,11 +58,10 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNu
 
         // 엑셀 데이터에 DB 데이터 병합
         const mergedData = readExcelData
-            .filter(excelRow => excelRow.연락처 != null)//TODO 실제로 Key 값으로 사용 할 Column 명으로 대체 ( null 필터링 )
+            .filter(excelRow => excelRow.연락처 != null)
             .map(excelRow => {
-                const dbRow = dbMap.get(normalizePhone(excelRow.연락처));//TODO 실제로 Key 값으로 사용 할 Column 명으로 대체 ( dbMap 에서 값 가지고오는 부분 )
+                const dbRow = dbMap.get(normalizePhone(excelRow.연락처));
                 const regDate = dbRow && dbRow.regDate ? formatRegDate(dbRow.regDate) : null;
-
                 return {
                     ...excelRow,
                     아이디: dbRow? dbRow.userId : null,
@@ -75,30 +76,32 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNu
                 };
             });
 
+        const lastRowNumber = mergedData?.[mergedData.length - 1]?.rowNumber ?? null;
         await writePdfFile(mergedData, pdfPath, saveDir, 2, "excel");
-        return mergedData.length;
+
+        console.log(`[Excel→PDF] 저장 경로: ${saveDir + "/**"}`);
+        return lastRowNumber
     } catch (error) {
         console.error('handleExcelToDb ERROR:', error.message);
         throw error;
     }
 }
 
-const handleWriteNotFoundUser = async (excelPath, excelOption, dbConfig, rowNumber) => {
+const handleWriteNotFoundUser = async (excelPath, excelOption, dbConfig) => {
     const {sheetIndex, headerRow, startRow, endRow} = excelOption;
     try {
         const {year, month} = getCurrentYearMonth();
-        const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow, rowNumber);
+        const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow);
 
         const excelFileName = path.basename(excelPath);
 
-        const randomStr = "k_food"
         const baseSaveDir = path.join(fileRootPath, year.toString(), month, "NOT_FOUND_USER");
-        const saveDir = path.join(baseSaveDir, randomStr);
+        const saveDir = path.join(baseSaveDir);
 
         fs.mkdirSync(saveDir, { recursive: true });
 
         // DB 데이터 조회
-        const { dbMap, normalizePhone } = await getDbDataMap(dbConfig);
+        const {dbMap, normalizePhone} = await getDbDataMap(dbConfig);
 
         // 매칭 안 된 유저 추적
         const notFoundList = [];
@@ -129,9 +132,6 @@ const handleWriteNotFoundUser = async (excelPath, excelOption, dbConfig, rowNumb
             fs.appendFileSync(filePath, fileContent, 'utf-8');
             console.log(`매칭 실패 유저: ${notFoundList.length}명 추가`);
         }
-
-        const lastRowNumber = readExcelData?.[readExcelData.length - 1]?.rowNumber ?? null;
-        return lastRowNumber;
     } catch (error) {
         console.error('writeNotFoundUser ERROR:', error.message);
         throw error;
@@ -147,7 +147,7 @@ const printDuplicatePhones = (duplicateMap) => {
             console.log(`연락처: ${phone} (${users.length}건 중복)`);
             console.log("─".repeat(50));
             users.forEach((user, idx) => {
-                console.log(`  [${idx + 1}] 이름: ${user.userName || 'N/A'}`);
+                console.log(`  [${idx + 1}] 이름: ${user.name || 'N/A'}`);
                 console.log(`      ID: ${user.userId || 'N/A'}`);
                 console.log(`      이메일: ${user.email || 'N/A'}`);
                 console.log(`      가입일: ${user.regDate || 'N/A'}`);
