@@ -3,6 +3,12 @@
 ### 1. DB -> PDF
 데이터베이스 쿼리 결과를 PDF로 생성.
 
+#### 실행방법
+```
+// 해당 리파지토리 Root 폴더 위치에서 아래 스크립트 실행
+./run.sh
+```
+
 - 날짜만 입력하면 처리됩니다.
 - 쿼리에 나온 결과를 기반으:로 PDF를 생성.
 
@@ -12,9 +18,7 @@
 **설정 및 사용 방법:**
 
 1. `app.js`의 `readingFileList = []`에 처리할 Excel 파일 이름을 추가.
-2. `properties/app.config-local.json`에서 경로 설정:
-   - `excel_path`: Excel 파일이 있는 **디렉토리**
-   - `pdf_output_path`: PDF Form이 있는 **파일 위치**
+2. `./storage/excel/` 하위에 처리할 Excel 파일 추가 
 3. `/handlers/excel_handler.js`의 `getDbDataMap` 함수는 DB에서 가져온 데이터를 Map으로 변환합니다.  
    *(TODO 목록을 참고하여 키 값 수정 필요)*
 4. `/handlers/excel_handler.js`의 `handleExcelToPDF` 함수는 Excel 데이터와 DB Map을 활용하여 PDF를 생성합니다.
@@ -26,9 +30,7 @@ Excel 파일에서 DB에 없는 사용자를 별도로 기록.
 **설정 및 사용 방법:**
 
 1. `app.js`의 `readingFileList = []`에 처리할 Excel 파일 이름을 추가합니다.
-2. `properties/app.config-local.json`에서 경로 설정:
-- `excel_path`: Excel 파일이 있는 **디렉토리**
-- `pdf_output_path`: PDF Form이 있는 **파일 위치**
+2. `./storage/excel/` 하위에 처리할 Excel 파일 추가 
 3. `/handlers/excel_handler.js`의 `getDbDataMap` 함수는 DB에서 가져온 데이터를 Map으로 변환합니다.  
    *(TODO 목록을 참고하여 키 값 수정 필요)*
 4. `/handlers/excel_handler.js`의 `handleWriteNotFoundUser` 함수는 Excel 데이터와 DB Map을 활용하여 매핑되지 않은 사용자를 추출합니다.
@@ -38,4 +40,3 @@ Excel 파일에서 DB에 없는 사용자를 별도로 기록.
 1. brew install ghostscript
 2. gs --version
 3. 설치 후 버전 확인 버전이 정상적으로 나오면 설치완료
-
