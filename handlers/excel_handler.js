@@ -7,6 +7,7 @@ const {getCurrentYearMonth} = require("./utill_processor")
 const {selectQueryExecuteData} = require("./db_processor");
 const {getConnection} = require("../config/db");
 const query = require("../config/query")
+const {json} = require("express");
 
 const projectRoot = path.resolve(__dirname, '..'); // 한 단계 위로 올라가서 루트
 const fileRootPath = path.join(projectRoot, 'output');
@@ -44,7 +45,7 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNu
     try {
         const {year, month} = getCurrentYearMonth();
         const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow, rowNumber);
-
+        //100개 읽음 ->? 101부터 시작 되게 해야함 근데 필터를 거치면? 나온건 90개인데 101부터 시작? X
         const randomStr = "k_food"
         const baseSaveDir = path.join(fileRootPath, year.toString(), month, "PDF");
         const saveDir = path.join(baseSaveDir, randomStr);
@@ -73,11 +74,9 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig, rowNu
                     일: regDate ? regDate.day : null
                 };
             });
-        console.log(mergedData[0])
-        const lastRowNumber = mergedData?.[mergedData.length - 1]?.rowNumber ?? null;
+
         await writePdfFile(mergedData, pdfPath, saveDir, 2, "excel");
-        console.log(`[Excel→PDF] 저장 경로: ${saveDir + "/**"}`);
-        return lastRowNumber
+        return mergedData.length;
     } catch (error) {
         console.error('handleExcelToDb ERROR:', error.message);
         throw error;

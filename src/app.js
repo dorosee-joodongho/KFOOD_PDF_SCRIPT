@@ -82,7 +82,6 @@ const handlers = {
 
         for (const fileName of readingFileList) {
             const filePath = excelPath + fileName;
-
             // 1. 파일의 전체 시트 개수 확인
             const workbook = xlsx.readFile(filePath);
             const sheetCount = workbook.SheetNames.length;
@@ -90,13 +89,14 @@ const handlers = {
             // 2. 각 시트마다 처리
             for (let sheetIndex = 0; sheetIndex < sheetCount; sheetIndex++) {
                 console.log(`시트 ${sheetIndex + 1}/${sheetCount} 처리`);
-                rowNumber = await handleExcelToPDF(
+                const dataSize = await handleExcelToPDF(
                     filePath,
                     { ...excelConfig, sheetIndex }, // sheetIndex 동적으로 전달
                     pdfPath,
                     db,
                     rowNumber
-                ) + 1;
+                );
+                rowNumber += dataSize
             }
         }
 
