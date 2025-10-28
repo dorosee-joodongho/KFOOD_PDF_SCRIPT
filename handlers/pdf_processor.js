@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const puppeteer =require("puppeteer");
-const {ensureDir} = require("./file_processor");
+const puppeteer = require("puppeteer");
+const { ensureDir } = require("./file_processor");
 const { exec } = require("child_process");
 
 // 전화번호 포맷 함수
@@ -98,8 +98,11 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                             return item.회원명 ?? ' ';
                         })
                         .replace('[[인허가번호]]', () => {
-                            if (!item.인허가번호) console.log('인허가번호 값 없음', item.아이디);
-                            return item.인허가번호 ?? ' ';
+                            if (!item.인허가번호 || item.인허가번호.trim() === '') {
+                                console.log('인허가번호 값 없음', item.아이디);
+                                return '-';
+                            }
+                            return item.인허가번호 ?? '-';
                         })
                         .replace('[[업종]]', () => {
                             if (!업종) console.log('업종 값 없음', item);
@@ -131,8 +134,12 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                             return item.이메일 ?? ' ';
                         })
                         .replace('[[업소명]]', () => {
-                            if (!item.업소명) console.log('업소명 값 없음', item.아이디);
-                            return item.업소명 ?? ' ';
+
+                            if (!item.업소명 || item.업소명.trim() === '') {
+                                console.log('업소명 값 없음', item.아이디);
+                                return '-';
+                            }
+                            return item.업소명 ?? '-';
                         })
                         .replace('[[월]]', () => {
                             if (!item.월) console.log('월 값 없음', item.아이디);
@@ -145,6 +152,10 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                         .replace('[[일]]', () => {
                             if (!item.일) console.log('일 값 없음', item.아이디);
                             return item.일 ?? ' ';
+                        })
+                        .replace('[[가입구분]]', () => {
+                            if (!item.가입구분) console.log('가입구분 값 없음', item.아이디);
+                            return item.가입구분 ?? ' ';
                         });
 
 
@@ -200,4 +211,4 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
     }
 }
 
-module.exports = {writePdfFile}
+module.exports = { writePdfFile }
