@@ -98,6 +98,7 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                             return item.회원명 ?? ' ';
                         })
                         .replace('[[인허가번호]]', () => {
+                            if (item.가입구분 === '신규영업자') return '-';
                             if (!item.인허가번호 || item.인허가번호.trim() === '') {
                                 console.log('인허가번호 값 없음', item.아이디);
                                 return '-';
@@ -135,6 +136,7 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                         })
                         .replace('[[업소명]]', () => {
 
+                            if (item.가입구분 === '신규영업자') return '-';
                             if (!item.업소명 || item.업소명.trim() === '') {
                                 console.log('업소명 값 없음', item.아이디);
                                 return '-';
