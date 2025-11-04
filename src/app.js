@@ -128,14 +128,14 @@ const handlers = {
     },
 
     write_not_found_user: async ()=>{
-        for (const fileName of readingFileList) {
-            const filePath = excelPath + fileName.filename;
+        for (const object of readingFileList) {
+            const filePath = excelPath + object.filename;
 
             // 1. 파일의 전체 시트 개수 확인
             const workbook = xlsx.readFile(filePath);
             const sheetCount = workbook.SheetNames.length;
 
-            console.log(`\n파일: ${fileName} (총 ${sheetCount}개 시트)`);
+            console.log(`\n파일: ${object.filename} (총 ${sheetCount}개 시트)`);
 
             // 2. 각 시트마다 처리
             for (let sheetIndex = 0; sheetIndex < sheetCount; sheetIndex++) {
