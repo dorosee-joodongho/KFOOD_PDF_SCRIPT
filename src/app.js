@@ -41,7 +41,7 @@ for (const arg of args) {
     }
 }
 
-if (appRunningType === 'db_to_pdf' && !inputDate) {
+if (appRunningType ==='db_to_pdf' && !inputDate) {
     console.error('날짜 인자가 필요합니다. 예: node src/app.js --date=2025-10-24');
     process.exit(1);
 }
@@ -62,42 +62,38 @@ if (appRunningType === 'db_to_pdf') {
 
 //해당 위치에 있는 파일 목록들 다 가지고오독 설정
 const readingFileList = [
-    // { filename: '2025년 9월 1일 회원가입 명부.xlsx', startDate: '2025-09-01', endDate: '2025-09-01' },
-    // { filename: '2025년 9월 2일 회원가입 명부.xlsx', startDate: '2025-09-02', endDate: '2025-09-02' },
-    // { filename: '2025년 9월 3일 회원가입 명부.xlsx', startDate: '2025-09-03', endDate: '2025-09-03' },
-    // { filename: '2025년 9월 4일 회원가입 명부.xlsx', startDate: '2025-09-04', endDate: '2025-09-04' },
-    // { filename: '2025년 9월 5~7일 회원가입 명부.xlsx', startDate: '2025-09-05', endDate: '2025-09-07' },
-    // { filename: '2025년 9월 8일 회원가입 명부.xlsx', startDate: '2025-09-08', endDate: '2025-09-08' },
-    // { filename: '2025년 9월 9일 회원가입 명부.xlsx', startDate: '2025-09-09', endDate: '2025-09-09' },
-    // { filename: '2025년 9월 10일 회원가입 명부.xlsx', startDate: '2025-09-10', endDate: '2025-09-10' },
-    // { filename: '2025년 9월 11일 회원가입 명부.xlsx', startDate: '2025-09-11', endDate: '2025-09-11' },
-    // { filename: '2025년 9월 12~14일 회원가입 명부.xlsx', startDate: '2025-09-12', endDate: '2025-09-14' },
-    // { filename: '2025년 9월 15일 회원가입 명부.xlsx', startDate: '2025-09-15', endDate: '2025-09-15' },
-    // { filename: '2025년 9월 16일 회원가입 명부.xlsx', startDate: '2025-09-16', endDate: '2025-09-16' },
-    // { filename: '2025년 9월 17일 회원가입 명부.xlsx', startDate: '2025-09-17', endDate: '2025-09-17' },
-    // { filename: '2025년 9월 18일 회원가입 명부.xlsx', startDate: '2025-09-18', endDate: '2025-09-18' },
-    // { filename: '2025년 9월 19일~21일 회원가입 명부.xlsx', startDate: '2025-09-19', endDate: '2025-09-21' },
-    // { filename: '2025년 9월 22일 회원가입 명부.xlsx', startDate: '2025-09-22', endDate: '2025-09-22' },
-    // { filename: '2025년 9월 23일 회원가입 명부.xlsx', startDate: '2025-09-23', endDate: '2025-09-23' },
-    // { filename: '2025년 9월 24일 회원가입 명부.xlsx', startDate: '2025-09-24', endDate: '2025-09-24' },
-    // { filename: '2025년 9월 25일 회원가입 명부.xlsx', startDate: '2025-09-25', endDate: '2025-09-25' },
-    // { filename: '2025년 9월 26일~28일 회원가입 명부.xlsx', startDate: '2025-09-26', endDate: '2025-09-28' },
-    // { filename: '2025년 9월 29일 회원가입 명부.xlsx', startDate: '2025-09-29', endDate: '2025-09-29' },
-    // { filename: '2025년 9월 30일 회원가입 명부.xlsx', startDate: '2025-09-30', endDate: '2025-09-30' },
-    // { filename: '2025년 10월 1일 회원가입 명부.xlsx', startDate: '2025-10-01', endDate: '2025-10-01' },
-    // { filename: '2025년 10월 2-9일 회원가입 명부.xlsx', startDate: '2025-10-02', endDate: '2025-10-09' },
-    // { filename: '2025년 10월 10일~12일 회원가입 명부.xlsx', startDate: '2025-10-10', endDate: '2025-10-12' },
-    // { filename: '2025년 10월 13일 회원가입 명부.xlsx', startDate: '2025-10-13', endDate: '2025-10-13' },
-    // { filename: '2025년 10월 14일 회원가입 명부.xlsx', startDate: '2025-10-14', endDate: '2025-10-14' },
-    // { filename: '2025년 10월 15일 회원가입 명부.xlsx', startDate: '2025-10-15', endDate: '2025-10-15' },
-    // { filename: '2025년 10월 16일 회원가입 명부.xlsx', startDate: '2025-10-16', endDate: '2025-10-16' },
-    // { filename: '2025년 10월 17일~19일 회원가입 명부.xlsx', startDate: '2025-10-17', endDate: '2025-10-19' },
-    // { filename: '2025년 10월 20일 회원가입 명부.xlsx', startDate: '2025-10-20', endDate: '2025-10-20' },
-    // { filename: '2025년 10월 21일 회원가입 명부.xlsx', startDate: '2025-10-21', endDate: '2025-10-21' },
-    { filename: '2025년 10월 22일 회원가입 명부.xlsx', startDate: '2025-10-22', endDate: '2025-10-22' },
-    { filename: '2025년 10월 23일 회원가입 명부.xlsx', startDate: '2025-10-23', endDate: '2025-10-23' },
-    { filename: '2025년 10월 24일~26일 회원가입 명부.xlsx', startDate: '2025-10-24', endDate: '2025-10-26' },
-    { filename: '2025년 10월27일 회원명부.xlsx', startDate: '2025-10-27', endDate: '2025-10-27' }
+    { filename: '2025년 9월 1일 회원가입 명부.xlsx', startDate: '2025-09-01', endDate: '2025-09-01' },
+    { filename: '2025년 9월 2일 회원가입 명부.xlsx', startDate: '2025-09-02', endDate: '2025-09-02' },
+    { filename: '2025년 9월 3일 회원가입 명부.xlsx', startDate: '2025-09-03', endDate: '2025-09-03' },
+    { filename: '2025년 9월 4일 회원가입 명부.xlsx', startDate: '2025-09-04', endDate: '2025-09-04' },
+    { filename: '2025년 9월 5~7일 회원가입 명부.xlsx', startDate: '2025-09-05', endDate: '2025-09-07' },
+    { filename: '2025년 9월 8일 회원가입 명부.xlsx', startDate: '2025-09-08', endDate: '2025-09-08' },
+    { filename: '2025년 9월 9일 회원가입 명부.xlsx', startDate: '2025-09-09', endDate: '2025-09-09' },
+    { filename: '2025년 9월 10일 회원가입 명부.xlsx', startDate: '2025-09-10', endDate: '2025-09-10' },
+    { filename: '2025년 9월 11일 회원가입 명부.xlsx', startDate: '2025-09-11', endDate: '2025-09-11' },
+    { filename: '2025년 9월 12~14일 회원가입 명부.xlsx', startDate: '2025-09-12', endDate: '2025-09-14' },
+    { filename: '2025년 9월 15일 회원가입 명부.xlsx', startDate: '2025-09-15', endDate: '2025-09-15' },
+    { filename: '2025년 9월 16일 회원가입 명부.xlsx', startDate: '2025-09-16', endDate: '2025-09-16' },
+    { filename: '2025년 9월 17일 회원가입 명부.xlsx', startDate: '2025-09-17', endDate: '2025-09-17' },
+    { filename: '2025년 9월 18일 회원가입 명부.xlsx', startDate: '2025-09-18', endDate: '2025-09-18' },
+    { filename: '2025년 9월 19일~21일 회원가입 명부.xlsx', startDate: '2025-09-19', endDate: '2025-09-21' },
+    { filename: '2025년 9월 22일 회원가입 명부.xlsx', startDate: '2025-09-22', endDate: '2025-09-22' },
+    { filename: '2025년 9월 23일 회원가입 명부.xlsx', startDate: '2025-09-23', endDate: '2025-09-23' },
+    { filename: '2025년 9월 24일 회원가입 명부.xlsx', startDate: '2025-09-24', endDate: '2025-09-24' },
+    { filename: '2025년 9월 25일 회원가입 명부.xlsx', startDate: '2025-09-25', endDate: '2025-09-25' },
+    { filename: '2025년 9월 26일~28일 회원가입 명부.xlsx', startDate: '2025-09-26', endDate: '2025-09-28' },
+    { filename: '2025년 9월 29일 회원가입 명부.xlsx', startDate: '2025-09-29', endDate: '2025-09-29' },
+    { filename: '2025년 9월 30일 회원가입 명부.xlsx', startDate: '2025-09-30', endDate: '2025-09-30' },
+    { filename: '2025년 10월 1일 회원가입 명부.xlsx', startDate: '2025-10-01', endDate: '2025-10-01' },
+    { filename: '2025년 10월 2-9일 회원가입 명부.xlsx', startDate: '2025-10-02', endDate: '2025-10-09' },
+    { filename: '2025년 10월 10일~12일 회원가입 명부.xlsx', startDate: '2025-10-10', endDate: '2025-10-12' },
+    { filename: '2025년 10월 13일 회원가입 명부.xlsx', startDate: '2025-10-13', endDate: '2025-10-13' },
+    { filename: '2025년 10월 14일 회원가입 명부.xlsx', startDate: '2025-10-14', endDate: '2025-10-14' },
+    { filename: '2025년 10월 15일 회원가입 명부.xlsx', startDate: '2025-10-15', endDate: '2025-10-15' },
+    { filename: '2025년 10월 16일 회원가입 명부.xlsx', startDate: '2025-10-16', endDate: '2025-10-16' },
+    { filename: '2025년 10월 17일~19일 회원가입 명부.xlsx', startDate: '2025-10-17', endDate: '2025-10-19' },
+    { filename: '2025년 10월 20일 회원가입 명부.xlsx', startDate: '2025-10-20', endDate: '2025-10-20' },
+    { filename: '2025년 10월 21일 회원가입 명부.xlsx', startDate: '2025-10-21', endDate: '2025-10-21' }
 ];
 //포멧 형식에 맞춘 Excel Config
 const excelConfig = {
@@ -131,15 +127,15 @@ const handlers = {
         console.log(`\n전체 처리 완료! 총 ${rowNumber - 1}개 행 처리`);
     },
 
-    write_not_found_user: async () => {
-        for (const fileName of readingFileList) {
-            const filePath = excelPath + fileName.filename;
+    write_not_found_user: async ()=>{
+        for (const object of readingFileList) {
+            const filePath = excelPath + object.filename;
 
             // 1. 파일의 전체 시트 개수 확인
             const workbook = xlsx.readFile(filePath);
             const sheetCount = workbook.SheetNames.length;
 
-            console.log(`\n파일: ${fileName} (총 ${sheetCount}개 시트)`);
+            console.log(`\n파일: ${object} (총 ${sheetCount}개 시트)`);
 
             // 2. 각 시트마다 처리
             for (let sheetIndex = 0; sheetIndex < sheetCount; sheetIndex++) {

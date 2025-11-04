@@ -81,7 +81,13 @@ async function writePdfFile(data, pdfPath, saveDir, concurrency = 8, type) {
                     ensureDir(saveDir);
                     const dayDir = path.join(saveDir)
                     ensureDir(dayDir); // 일별 디렉토리 생성
-                    const safeValue = String(`${item.년}.${item.월}.${item.일}.${item.No}_${item.회원명}`);
+                    let number = 0;
+                    if (type === 'excel')
+                         number = item.No;
+                    else
+                        number = item.연번 || item.No
+
+                    const safeValue = String(`${item.년}.${item.월}.${item.일}.${number}_${item.회원명}`);
 
                     fs.mkdirSync(dayDir, { recursive: true });
 
