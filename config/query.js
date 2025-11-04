@@ -1,20 +1,23 @@
 module.exports = {
-    SELECT_QUERY: `
+  SELECT_QUERY: `
         SELECT
-               u.userNo                                   AS \`연번\`,
+               u.userNo                                   AS \`No\`,
                u.name                                     AS \`회원명\`,
-               COALESCE(a.licenseNumber, b.licenseNumber) AS \`인허가번호\`,
-               CASE COALESCE(a.industryType, b.industryType)
+               u.licenseNumber                            AS \`인허가번호\`,
+               CASE u.salesType
+                   WHEN 1 THEN '신규영업자'
+                   WHEN 2 THEN '기존영업자'
+                   END                                    AS \`가입구분\`,
+               CASE u.industryType
                    WHEN 1 THEN '일반음식점'
                    WHEN 2 THEN '집단급식소'
                    WHEN 3 THEN '위탁급식업'
-                   ELSE '기타'
                    END                                    AS \`업종\`,
-               COALESCE(a.businessName, b.businessName)   AS \`업소명\`,
-               CONCAT(u.address, ' ', u.address2)         As \`주소\`,
-               u.userphone                                AS \`연락처\`,
+               u.businessName                             AS \`업소명\`,
+               CONCAT(u.originAddress, ' ', u.originAddress2)         As \`주소\`,
+               u.originUserphone                                AS \`연락처\`,
                u.userid                                   AS \`아이디\`,
-               u.email                                    AS \`이메일\`,
+               u.originEmail                                    AS \`이메일\`,
                u.birth                                    AS \`생년월일\`,
                u.regdate                                  AS \`가입일\`
         FROM kFood.tblUser u
@@ -43,13 +46,13 @@ module.exports = {
           AND u.status = '1'
         ORDER BY u.regdate;`,
 
-    SELECT_MAPPING_USER_QUERY:`
+  SELECT_MAPPING_USER_QUERY: `
         SELECT *
         FROM tblUser
         WHERE regdate BETWEEN '__START_DATE__ 00:00:00' AND '__END_DATE__ 23:59:59';
     `,
-    //자유롭게 사용 유저 누락이 되거나 그럴떄 사용
-    SELECT_CUSTOM_QUERY: `
+  //자유롭게 사용 유저 누락이 되거나 그럴떄 사용
+  SELECT_CUSTOM_QUERY: `
         SELECT u.name                                     AS \`회원명\`,
                COALESCE(a.licenseNumber, b.licenseNumber) AS \`인허가번호\`,
                CASE COALESCE(a.industryType, b.industryType)

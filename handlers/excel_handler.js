@@ -1,15 +1,34 @@
 const path = require('path');
 const fs = require('fs');
 
-const {writePdfFile} = require("./pdf_processor")
-const {readExcelFile} = require("./excel_processor");
-const {getCurrentYearMonth} = require("./utill_processor")
-const {selectQueryExecuteData} = require("./db_processor");
-const {getConnection} = require("../config/db");
+const { writePdfFile } = require("./pdf_processor")
+const { readExcelFile } = require("./excel_processor");
+const { getCurrentYearMonth } = require("./utill_processor")
+const { selectQueryExecuteData } = require("./db_processor");
+const { getConnection } = require("../config/db");
 const query = require("../config/query")
 
 const projectRoot = path.resolve(__dirname, '..'); // 한 단계 위로 올라가서 루트
 const fileRootPath = path.join(projectRoot, 'output');
+
+// 영업 유형을 한국어로 변환하는 함수
+const salesTypeToKorean = (salesType) => {
+    switch (salesType) {
+        case 1: return '신규영업자';
+        case 2: return '기존영업자';
+        default: return '알 수 없음';
+    }
+};
+
+// 업종을 한국어로 변환하는 함수
+const industryTypeToKorean = (industryType) => {
+    switch (industryType) {
+        case 1: return '일반음식점';
+        case 2: return '집단급식소';
+        case 3: return '위탁급식업';
+        default: return '알 수 없음';
+    }
+};
 
 // 공통: DB 데이터를 Map 으로 변환
 const getDbDataMap = async (dbConfig) => {
@@ -17,7 +36,7 @@ const getDbDataMap = async (dbConfig) => {
     const readDbData = await selectQueryExecuteData("tblUser", db, `
         SELECT *
         FROM tblUser
-        WHERE regdate BETWEEN '2025-08-01 00:00:00' AND '2025-10-22 00:00:00';
+        WHERE regdate BETWEEN '2025-10-21 00:00:00' AND '2025-10-30 00:00:00';
     `);
 
     const dbMap = new Map();
@@ -42,10 +61,10 @@ const getDbDataMap = async (dbConfig) => {
 
 //데이터 베이스 To Pdf
 const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig) => {
-    const {sheetIndex, headerRow, startRow, endRow} = excelOption;
+    const { sheetIndex, headerRow, startRow, endRow } = excelOption;
 
     try {
-        const {year, month} = getCurrentYearMonth();
+        const { year, month } = getCurrentYearMonth();
         const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow);
 
         const filename = path.parse(excelPath).name;
@@ -64,12 +83,14 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig) => {
                 const regDate = dbRow && dbRow.regDate ? formatRegDate(dbRow.regDate) : null;
                 return {
                     ...excelRow,
-                    아이디: dbRow? dbRow.userId : null,
+                    가입구분: dbRow ? salesTypeToKorean(dbRow.salesType) : null,
+                    업종: dbRow ? industryTypeToKorean(dbRow.industryType) : null,
+                    아이디: dbRow ? dbRow.userId : null,
                     소재지: excelRow.소재지 ?? (dbRow ? dbRow.address : null),
                     소재지상세: excelRow.소재지상세 ?? (dbRow ? dbRow.address2 : null),
                     생년월일: dbRow ? dbRow.birth : null,
                     이메일: dbRow ? dbRow.email : null,
-                    가입일: dbRow? dbRow.regDate : null,
+                    가입일: dbRow ? dbRow.regDate : null,
                     년: regDate ? regDate.year : null,
                     월: regDate ? regDate.month : null,
                     일: regDate ? regDate.day : null
@@ -88,9 +109,9 @@ const handleExcelToPDF = async (excelPath, excelOption, pdfPath, dbConfig) => {
 }
 
 const handleWriteNotFoundUser = async (excelPath, excelOption, dbConfig) => {
-    const {sheetIndex, headerRow, startRow, endRow} = excelOption;
+    const { sheetIndex, headerRow, startRow, endRow } = excelOption;
     try {
-        const {year, month} = getCurrentYearMonth();
+        const { year, month } = getCurrentYearMonth();
         const readExcelData = readExcelFile(excelPath, headerRow, sheetIndex, startRow, endRow);
 
         const excelFileName = path.basename(excelPath);
@@ -101,7 +122,7 @@ const handleWriteNotFoundUser = async (excelPath, excelOption, dbConfig) => {
         fs.mkdirSync(saveDir, { recursive: true });
 
         // DB 데이터 조회
-        const {dbMap, normalizePhone} = await getDbDataMap(dbConfig);
+        const { dbMap, normalizePhone } = await getDbDataMap(dbConfig);
 
         // 매칭 안 된 유저 추적
         const notFoundList = [];
@@ -174,4 +195,4 @@ function formatRegDate(regDate) {
     };
 }
 
-module.exports = {handleExcelToPDF , handleWriteNotFoundUser};
+module.exports = { handleExcelToPDF, handleWriteNotFoundUser };
