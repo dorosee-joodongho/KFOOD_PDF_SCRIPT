@@ -15,7 +15,7 @@ const salesTypeToKorean = (salesType) => {
     switch (salesType) {
         case 1: return '신규영업자';
         case 2: return '기존영업자';
-        default: return '알 수 없음';
+        default: return null;
     }
 };
 
@@ -106,6 +106,9 @@ const excelToPdfModel = (excelRowDataList, dbRowDataMap = {}, saveDir) => {
             });
         }
 
+        const licenseNumber = excelRow['인허가번호'] ?? dbRow.licenseNumber;
+        const salesTypeResult = salesTypeToKorean(dbRow.salesType);
+
         return {
             // PDF 필수
             회원명: excelRow['영업자명'] ?? dbRow.name,
@@ -119,7 +122,7 @@ const excelToPdfModel = (excelRowDataList, dbRowDataMap = {}, saveDir) => {
             이메일: dbRow.email,
             생년월일: dbRow.birth,
             가입일: dbRow.regDate,
-            가입구분: salesTypeToKorean(dbRow.salesType),
+            가입구분: salesTypeResult ?? (licenseNumber ? '기존영업자' : '신규영업자'),
 
             // 파일명 / 날짜용
             연번: dbRow.userNo,

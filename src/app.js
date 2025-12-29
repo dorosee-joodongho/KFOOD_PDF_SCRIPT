@@ -75,7 +75,7 @@ const excelConfig = {
     startRow: 1,   //헤더 기준 몇번째 Row 부터 시작할지
     endRow: null
 }
-const failedMappingSavePath = path.join('/Users/dorosee/Documents/KFOOD_PDF_SCRIPT', 'log'); //TODO 매핑 실패한 파일 로그
+const failedMappingSavePath = path.join('./', 'log');
 
 const handlers = {
     //모든 파일과 Sheet 순회
