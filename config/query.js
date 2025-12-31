@@ -7,12 +7,14 @@ module.exports = {
                CASE u.salesType
                    WHEN 1 THEN '신규영업자'
                    WHEN 2 THEN '기존영업자'
-                   END                                    AS \`가입구분\`,
+                   ELSE '신규영업자'
+                 END                                    AS \`가입구분\`,
                CASE u.industryType
                    WHEN 1 THEN '일반음식점'
                    WHEN 2 THEN '집단급식소'
                    WHEN 3 THEN '위탁급식업'
-                   END                                    AS \`업종\`,
+                   ELSE '위탁급식영업'
+                 END                                    AS \`업종\`,
                u.businessName                             AS \`업소명\`,
                CONCAT(u.originAddress, ' ', u.originAddress2)         As \`주소\`,
                u.originUserphone                                AS \`연락처\`,
@@ -43,9 +45,8 @@ module.exports = {
                                                             GROUP BY userId)) b
                            ON u.userId = b.userId AND a.userId IS NULL
         WHERE u.regdate BETWEEN '__START_DATE__' AND '__END_DATE__'
-          AND u.status = '1'
+          AND u.status = '1' AND name = '신은숙'
         ORDER BY u.regdate;`,
-
   SELECT_MAPPING_USER_QUERY: `
         SELECT *
         FROM tblUser

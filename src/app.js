@@ -7,7 +7,8 @@ const { handleExcelToPDF, handleWriteNotFoundUser } = require("../handlers/excel
 const { logExecution } = require("../handlers/utill_processor");
 const Query = require("../config/query");
 
-const uploadedDbConfig = path.join(__dirname, '../properties/app.config-local.json');
+const uploadedDbConfig = path.join(__dirname, '../properties/app.config.json');
+// const uploadedDbConfig = path.join(__dirname, '../properties/app.config.json');
 
 let excelPath;
 let pdfPath;
@@ -80,7 +81,7 @@ const failedMappingSavePath = path.join('./', 'log');
 const handlers = {
     //모든 파일과 Sheet 순회
     excel_to_pdf: async () => {
-        const filePath = excelPath + readingFileList[0]; //TODO 추출할 파일만 바꿔주기!
+        const filePath = excelPath + readingFileList[2]; //TODO 추출할 파일만 바꿔주기!
         const workbook = xlsx.readFile(filePath);
         const sheetCount = workbook.SheetNames.length;
 
@@ -98,28 +99,16 @@ const handlers = {
     },
 
     write_not_found_user: async ()=>{
-        for (const object of readingFileList) {
-            const filePath = excelPath + object.filename;
-
-            // 1. 파일의 전체 시트 개수 확인
-            const workbook = xlsx.readFile(filePath);
-            const sheetCount = workbook.SheetNames.length;
-
-            console.log(`\n파일: ${object} (총 ${sheetCount}개 시트)`);
-
-            // 2. 각 시트마다 처리
-            for (let sheetIndex = 0; sheetIndex < sheetCount; sheetIndex++) {
-                console.log(`시트 ${sheetIndex + 1}/${sheetCount} 처리`);
-
-                await handleWriteNotFoundUser(
-                    filePath,
-                    { ...excelConfig, sheetIndex }, // sheetIndex 동적으로 전달
-                    db
-                );
-            }
-        }
+        const filePath = excelPath + readingFileList[0];
+        const workbook = xlsx.readFile(filePath);
+        const sheetCount = workbook.SheetNames.length;
+        await handleWriteNotFoundUser(
+            filePath,
+            excelConfig,
+            null,
+            "/Users/dorosee/Documents/kfood_user_pdf/2021/2021년 12월"
+        );
     },
-
     db_to_pdf: () => handleDbToPDF(
         db,
         pdfPath,

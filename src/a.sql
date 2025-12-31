@@ -1,0 +1,122 @@
+SELECT DI.DEVICE_ID,                                                                   -- 디바이스 아이디
+       LPAD(MONTHLY_DATA.YEAR, 4, '0') || '-' || LPAD(MONTHLY_DATA.MONTH, 2, '0')    AS 날짜,              -- 날짜 (YYYY-MM)
+       NVL(MONTHLY_DATA.DRIVE_COUNT_DAY, 0)                 AS "사용일수(일)",         -- 운행한 일수
+       NVL(MONTHLY_DATA.DRIVE_TOTAL_DISTANCE_M, 0)          AS "운행연장(km.lane)", -- 총 운행거리(km)
+       NVL(ROUND(MONTHLY_DATA.DRIVE_TOTAL_DURATION_MIN), 0) AS "운행시간(분)",        -- 총 운행시간(분)
+       NVL(PTH_DATA.TOTAL_PTH_CNT, 0)                       AS "포트홀 검출(개)",      -- 총 포트홀 수
+       NVL(PTH_DATA.TOTAL_UNRESOLVE_PTH_CNT, 0)             AS "미보수 포트홀(개)",    -- 미보수 포트홀 수
+       NVL(PTH_DATA.TOTAL_RESOLVE_PTH_CNT, 0)               AS "보수완료 포트홀(개)"   -- 보수완료 포트홀 수
+FROM TB_DEPARTMENT_INFO TDI
+         LEFT JOIN TB_USER_DEPARTMENT_REL TUDR
+                   ON TDI.DEPARTMENT_ID = TUDR.DEPARTMENT_ID
+         LEFT JOIN DEVICE_INFO DI
+                   ON DI.DEVICE_ID = TUDR.USERID
+         LEFT JOIN (
+    -- 월별 운행 집계 데이터
+    SELECT DEVICE_ID,
+        YEAR,
+        MONTH,
+        SUM(DRIVE_COUNT)              AS DRIVE_COUNT,
+        SUM(DRIVE_COUNT_DAY)          AS DRIVE_COUNT_DAY,
+        SUM(DRIVE_TOTAL_DISTANCE_M)   AS DRIVE_TOTAL_DISTANCE_M,
+        SUM(DRIVE_TOTAL_DISTANCE_KM)  AS DRIVE_TOTAL_DISTANCE_KM,
+        SUM(DRIVE_TOTAL_DURATION_MIN) AS DRIVE_TOTAL_DURATION_MIN
+    FROM (
+        ------------------------------------------------------------------
+        -- 1) 2025-03-06 이전 데이터 : DEVICE_DAILY_DISTANCE_INFO 기준
+        ------------------------------------------------------------------
+        SELECT DI.DEVICE_ID                      AS DEVICE_ID,
+        EXTRACT(YEAR FROM DDDI.DATES)     AS YEAR,
+        EXTRACT(MONTH FROM DDDI.DATES)    AS MONTH,
+        COUNT(*)                          AS DRIVE_COUNT,
+        COUNT(DISTINCT TRUNC(DDDI.DATES)) AS DRIVE_COUNT_DAY,
+        SUM(DDDI.DISTANCE)                AS DRIVE_TOTAL_DISTANCE_M,
+        TRUNC(SUM(DDDI.DISTANCE) / 1000)  AS DRIVE_TOTAL_DISTANCE_KM,
+        SUM(DDDI.DURATION) / 60           AS DRIVE_TOTAL_DURATION_MIN
+        FROM DEVICE_DAILY_DISTANCE_INFO DDDI
+        JOIN DEVICE_INFO DI
+        ON DDDI.DEVICEID = DI.DEVICE_ID
+        JOIN TB_USER_DEPARTMENT_REL TUDR
+        ON DI.DEVICE_ID = TUDR.USERID
+        JOIN TB_DEPARTMENT_INFO TDI
+        ON TUDR.DEPARTMENT_ID = TDI.DEPARTMENT_ID
+        WHERE DDDI.DATES < TO_DATE('2025-03-06', 'YYYY-MM-DD')
+        -- 필요시 부서 필터 추가
+        AND TDI.DEPARTMENT_NAME IN ('수원국토관리사무소')
+        GROUP BY DI.DEVICE_ID,
+        EXTRACT(YEAR FROM DDDI.DATES),
+        EXTRACT(MONTH FROM DDDI.DATES)
+
+        UNION ALL
+
+        ------------------------------------------------------------------
+        -- 2) 2025-03-06 이후 데이터 : TB_DRIVE_HIST 기준
+        ------------------------------------------------------------------
+        SELECT DI.DEVICE_ID                               AS DEVICE_ID,
+        EXTRACT(YEAR FROM DH.START_DRIVE_TIME)     AS YEAR,
+        EXTRACT(MONTH FROM DH.START_DRIVE_TIME)    AS MONTH,
+        COUNT(*)                                   AS DRIVE_COUNT,
+        COUNT(DISTINCT TRUNC(DH.START_DRIVE_TIME)) AS DRIVE_COUNT_DAY,
+        SUM(DH.DISTANCE / 1000)                           AS DRIVE_TOTAL_DISTANCE_M,
+        TRUNC(SUM(DH.DISTANCE) / 1000)             AS DRIVE_TOTAL_DISTANCE_KM,
+        SUM(
+        (EXTRACT(DAY FROM (DH.END_DRIVE_TIME - DH.START_DRIVE_TIME)) * 24 * 60)
+        + (EXTRACT(HOUR FROM (DH.END_DRIVE_TIME - DH.START_DRIVE_TIME)) * 60)
+        + (EXTRACT(MINUTE FROM (DH.END_DRIVE_TIME - DH.START_DRIVE_TIME)))
+        + (EXTRACT(SECOND FROM (DH.END_DRIVE_TIME - DH.START_DRIVE_TIME)) / 60)
+        )                                          AS DRIVE_TOTAL_DURATION_MIN
+        FROM TB_DRIVE_HIST DH
+        JOIN DEVICE_INFO DI
+        ON DI.ID = DH.DEVICE_ID
+        JOIN TB_USER_DEPARTMENT_REL TUDR
+        ON DI.DEVICE_ID = TUDR.USERID
+        JOIN TB_DEPARTMENT_INFO TDI
+        ON TUDR.DEPARTMENT_ID = TDI.DEPARTMENT_ID
+        WHERE DH.START_DRIVE_TIME >= TO_DATE('2025-03-06', 'YYYY-MM-DD')
+        AND DH.START_DRIVE_TIME <= DH.END_DRIVE_TIME
+        -- 필요시 부서 필터 추가
+        AND TDI.DEPARTMENT_NAME IN ('수원국토관리사무소')
+        GROUP BY DI.DEVICE_ID,
+        EXTRACT(YEAR FROM DH.START_DRIVE_TIME),
+        EXTRACT(MONTH FROM DH.START_DRIVE_TIME))
+    GROUP BY DEVICE_ID, YEAR, MONTH
+) MONTHLY_DATA
+                   ON DI.DEVICE_ID = MONTHLY_DATA.DEVICE_ID
+         LEFT JOIN (
+    -- 월별 포트홀 집계 데이터
+    SELECT
+        DI_PTH.DEVICE_ID,
+        EXTRACT(YEAR FROM TDH.DETECT_TIME) AS YEAR,
+        EXTRACT(MONTH FROM TDH.DETECT_TIME) AS MONTH,
+        NVL(SUM(PI.PTH_CNT), 0) AS TOTAL_PTH_CNT,
+        NVL(SUM(PI.REAL_PTH), 0) AS TOTAL_UNRESOLVE_PTH_CNT,
+        NVL(SUM(PI.PTH_CNT - PI.REAL_PTH), 0) AS TOTAL_RESOLVE_PTH_CNT
+    FROM PROCESSED_IMAGES PI
+        LEFT JOIN TB_USER_DEPARTMENT_REL TUDR_PTH
+    ON SUBSTR(PI.PMS_ID, 1, INSTR(PI.PMS_ID, '_')-1) = TUDR_PTH.USERID
+        LEFT JOIN TB_DETECT_HIST TDH
+        ON TDH.FILE_PATH = PI.PHOTO_FILE_URL
+        LEFT JOIN TB_DEPARTMENT_INFO TDI_PTH
+        ON TUDR_PTH.DEPARTMENT_ID = TDI_PTH.DEPARTMENT_ID
+        LEFT JOIN DEVICE_INFO DI_PTH
+        ON TUDR_PTH.USERID = DI_PTH.DEVICE_ID
+    WHERE PI.PTH_CNT >= 1
+      AND TDI_PTH.DEPARTMENT_NAME IN ('수원국토관리사무소')
+      AND TDH.DETECT_TIME IS NOT NULL
+    GROUP BY
+        DI_PTH.DEVICE_ID,
+        EXTRACT(YEAR FROM TDH.DETECT_TIME),
+        EXTRACT(MONTH FROM TDH.DETECT_TIME)
+) PTH_DATA
+                   ON DI.DEVICE_ID = PTH_DATA.DEVICE_ID
+                       AND MONTHLY_DATA.YEAR = PTH_DATA.YEAR
+                       AND MONTHLY_DATA.MONTH = PTH_DATA.MONTH
+
+WHERE 1 = 1
+  AND TDI.DEPARTMENT_NAME IN ('수원국토관리사무소')
+  AND (MONTHLY_DATA.YEAR IS NOT NULL OR PTH_DATA.YEAR IS NOT NULL) -- 데이터가 있는 연도/월만 출력
+  AND (MONTHLY_DATA.YEAR ='2025')
+ORDER BY MONTHLY_DATA.YEAR,
+         MONTHLY_DATA.MONTH,
+         TDI.DEPARTMENT_NAME,
+         DI.DEVICE_ID;
